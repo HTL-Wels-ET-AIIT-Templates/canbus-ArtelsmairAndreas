@@ -84,26 +84,34 @@ void canSendTask(void) {
 
 	CAN_TxHeaderTypeDef txHeader;
 	CAN_RxHeaderTypeDef rxHeader;
-	uint8_t txData[8]; // array for tx data
-	uint8_t rxData[8]; // array for rx data
+	uint8_t txData[8]; 					// array for tx data
+	uint8_t rxData[8]; 					// array for rx data
 	txHeader.StdId = 0x1AB;
 	txHeader.ExtId = 0x00;
 	txHeader.RTR = CAN_RTR_DATA;
 	txHeader.IDE = CAN_ID_STD;
 	txHeader.DLC = 2;
 	txData[0] = 0xC3;
-	txData[1] = var;
+	txData[1] = 10;
+
+	uint32_t txMailbox;
 
 	// ToDo (2): get temperature value
 
 
 	// ToDo prepare send data
-
+	// check if mailboxes are empty (last transmission was successful)
+	if (HAL_CAN_GetTxMailboxesFreeLevel(&canHandle) != 3 ) {
+		// mail box not empty
+	}
 
 
 	// ToDo send CAN frame
-
-
+	// send frame: frame will be copied int send mail box
+	if (HAL_CAN_AddTxMessage(&canHandle, &txHeader, txData, &txMailbox) != HAL_OK)
+	{
+		// send failed
+	}
 
 	// ToDo display send counter and send data
 
@@ -127,10 +135,19 @@ void canReceiveTask(void) {
 
 
 	// ToDo: Get CAN frame from RX fifo
-
+	// get frame from receive FIFO
+	if (HAL_CAN_GetRxMessage(&canHandle, CAN_RX_FIFO0, &rxHeader, rxData) != HAL_OK)
+	{
+		// error
+	}
+	// rxHeader and rxData contain data of received frame -> process it
 
 
 	// ToDo: Process received CAN Frame (extract data)
+	// check if frame has been received
+	if (HAL_CAN_GetRxFifoFillLevel(&canHandle, CAN_RX_FIFO0) == 0) {
+		// no frame received
+	}
 
 
 
