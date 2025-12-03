@@ -21,7 +21,7 @@
 /* Private define ------------------------------------------------------------*/
 
 // ToDo: korrekte Prescaler-Einstellung
-#define   CAN1_CLOCK_PRESCALER    1000
+#define   CAN1_CLOCK_PRESCALER    12
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef     canHandle;
@@ -82,10 +82,19 @@ void canSendTask(void) {
 	// ToDo declare the required variables
 	static unsigned int sendCnt = 0;
 
-
+	CAN_TxHeaderTypeDef txHeader;
+	CAN_RxHeaderTypeDef rxHeader;
+	uint8_t txData[8]; // array for tx data
+	uint8_t rxData[8]; // array for rx data
+	txHeader.StdId = 0x1AB;
+	txHeader.ExtId = 0x00;
+	txHeader.RTR = CAN_RTR_DATA;
+	txHeader.IDE = CAN_ID_STD;
+	txHeader.DLC = 2;
+	txData[0] = 0xC3;
+	txData[1] = var;
 
 	// ToDo (2): get temperature value
-
 
 
 	// ToDo prepare send data
@@ -176,8 +185,8 @@ static void initCanPeripheral(void) {
 	canHandle.Init.SyncJumpWidth = CAN_SJW_1TQ;
 
 	// CAN Baudrate
-	canHandle.Init.TimeSeg1 = CAN_BS1_15TQ;
-	canHandle.Init.TimeSeg2 = CAN_BS2_6TQ;
+	canHandle.Init.TimeSeg1 = CAN_BS1_11TQ;
+	canHandle.Init.TimeSeg2 = CAN_BS2_4TQ;
 	canHandle.Init.Prescaler = CAN1_CLOCK_PRESCALER;
 
 	if (HAL_CAN_Init(&canHandle) != HAL_OK)
@@ -226,12 +235,12 @@ static void initCanPeripheral(void) {
 	}
 
 	/*##-4- Activate CAN RX notification #######################################*/
-//	HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
-//	if (HAL_CAN_ActivateNotification(&canHandle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-//	{
-//		/* Notification Error */
-//		Error_Handler();
-//	}
+	//	HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+	//	if (HAL_CAN_ActivateNotification(&canHandle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+	//	{
+	//		/* Notification Error */
+	//		Error_Handler();
+	//	}
 
 }
 
