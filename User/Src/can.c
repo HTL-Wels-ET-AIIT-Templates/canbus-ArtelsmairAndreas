@@ -78,7 +78,7 @@ void canInit(void) {
  * @param none
  * @return none
  */
-void canSendTask(void) {
+/*void canSendTask(void) {
 	// ToDo declare the required variables
 	static unsigned int sendCnt = 0;
 
@@ -118,14 +118,74 @@ void canSendTask(void) {
 
 
 }
+ */
+
+void canSendTask(void) {
+	static unsigned int sendCnt = 0;
+
+	HAL_Delay(40); // Entprellen
+
+	CAN_TxHeaderTypeDef txHeader;
+	uint8_t txData[8];
+	uint32_t txMailbox;
+
+	// Temperatur lesen
+//	float temp = tempSensorGetTemperature();
+//	int16_t t100 = (int16_t)(temp * 100);
+
+	// Telegramm laut Vorgabe
+	txData[0] = 0xAF;
+	txData[1] = sendCnt & 0xFF;
+	txData[2] = 0x00;
+	txData[3] = 0x00;
+
+	// Erweiterung: Temperatur
+	//txData[4] = (t100 >> 8) & 0xFF;
+	//txData[5] = t100 & 0xFF;
+	txData[6] = 0x00;
+	txData[7] = 0x00;
+
+	txHeader.StdId = 0x100;
+	txHeader.ExtId = 0x00;
+	txHeader.RTR   = CAN_RTR_DATA;
+	txHeader.IDE   = CAN_ID_STD;
+	txHeader.DLC   = 8;
+
+	// Mailbox frei?
+	if (HAL_CAN_GetTxMailboxesFreeLevel(&canHandle) == 0) {
+		return;
+	}
+
+	// Senden
+	if (HAL_CAN_AddTxMessage(&canHandle, &txHeader, txData, &txMailbox) == HAL_OK) {
+		sendCnt++;
+
+		LCD_SetColors(LCD_COLOR_GREEN, LCD_COLOR_BLACK);
+		LCD_SetPrintPosition(5,15);
+		printf("%5d", sendCnt);
+
+		LCD_SetPrintPosition(9,1);
+		printf("Send-Data: %03X %02X %02X %02X %02X ",			//T:%0.2f
+				txHeader.StdId,
+				txData[0], txData[1], txData[2], txData[3]);
+																//temp
+	}
+
+	// Warten bis Knopf losgelassen
+	while(GPIOA->IDR & 0x0001);
+}
+
 
 /**
  * checks if a can frame has been received and shows content on display
  * @param none
  * @return none
  */
-void canReceiveTask(void) {
+
+/*void canReceiveTask(void) {
 	static unsigned int recvCnt = 0;
+	static unsigned int rxHeader = 0;
+	static unsigned int rxData = 0;
 
 
 
@@ -156,6 +216,41 @@ void canReceiveTask(void) {
 
 
 }
+ */
+
+void canReceiveTask(void) {
+	static unsigned int recvCnt = 0;
+
+	CAN_RxHeaderTypeDef rxHeader;
+	uint8_t rxData[8];
+
+	// FIFO leer?
+	if (HAL_CAN_GetRxFifoFillLevel(&canHandle, CAN_RX_FIFO0) == 0) {
+		return;
+	}
+
+	// Frame abholen
+	if (HAL_CAN_GetRxMessage(&canHandle, CAN_RX_FIFO0, &rxHeader, rxData) != HAL_OK) {
+		return;
+	}
+
+	recvCnt++;
+
+	// Temperatur extrahieren
+	int16_t t100 = (rxData[4] << 8) | rxData[5];
+	float temp = t100 / 100.0f;
+
+	LCD_SetColors(LCD_COLOR_GREEN, LCD_COLOR_BLACK);
+	LCD_SetPrintPosition(7,15);
+	printf("%5d", recvCnt);
+
+	LCD_SetPrintPosition(15,1);
+	printf("Recv-Data: %03X %02X %02X %02X %02X T:%0.2f",
+			rxHeader.StdId,
+			rxData[0], rxData[1], rxData[2], rxData[3],
+			temp);
+}
+
 
 /**
  * Initialize GPIOs for CAN
@@ -198,7 +293,7 @@ static void initCanPeripheral(void) {
 	canHandle.Init.AutoRetransmission = ENABLE;
 	canHandle.Init.ReceiveFifoLocked = DISABLE;
 	canHandle.Init.TransmitFifoPriority = DISABLE;
-	canHandle.Init.Mode = CAN_MODE_NORMAL;
+	canHandle.Init.Mode = CAN_MODE_LOOPBACK;			//NORMAL
 	canHandle.Init.SyncJumpWidth = CAN_SJW_1TQ;
 
 	// CAN Baudrate

@@ -46,9 +46,7 @@ static int GetTouchState (int *xCoord, int *yCoord);
 void SysTick_Handler(void)
 {
 	HAL_IncTick();
-	canInit();
-	canSendTask();
-	canReceiveTask();
+
 
 }
 
@@ -85,6 +83,7 @@ int main(void)
 	// ToDo: set up CAN peripherals
 
 
+	canInit();
 
 	/* Infinite loop */
 	while (1)
@@ -94,24 +93,28 @@ int main(void)
 
 		// ToDo: send data over CAN when user button has been pressed
 
+		if (GetUserButtonPressed()) {
+			canSendTask();
+		}
 
 
 		// ToDo: check if data has been received
 
+		canReceiveTask();
 
-		// display timer
-		//		int cnt = HAL_GetTick();
-		//		LCD_SetFont(&Font12);
-		//		LCD_SetTextColor(LCD_COLOR_RED);
-		//		LCD_SetPrintPosition(0, 18);
-		//		printf("   Timer: %.1f", cnt/1000.0);
-		//
-		//		// test touch interface
-		//		int x, y;
-		//		if (GetTouchState(&x, &y)) {
-		//			LCD_FillCircle(x, y, 5);
-		//		}
 
+//		 display timer
+//				int cnt = HAL_GetTick();
+//				LCD_SetFont(&Font12);
+//				LCD_SetTextColor(LCD_COLOR_RED);
+//				LCD_SetPrintPosition(0, 18);
+//				printf("   Timer: %.1f", cnt/1000.0);
+//
+//				// test touch interface
+//				int x, y;
+//				if (GetTouchState(&x, &y)) {
+//					LCD_FillCircle(x, y, 5);
+//				}
 
 	}
 }
