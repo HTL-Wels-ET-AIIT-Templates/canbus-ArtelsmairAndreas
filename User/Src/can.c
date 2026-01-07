@@ -245,10 +245,9 @@ void canReceiveTask(void) {
 	printf("%5d", recvCnt);
 
 	LCD_SetPrintPosition(15,1);
-	printf("Recv-Data: %03X %02X %02X %02X %02X T:%0.2f",
+	printf("Recv-Data: %03X %02X %02X %02X %02X ",								//T:%0.2f
 			rxHeader.StdId,
-			rxData[0], rxData[1], rxData[2], rxData[3],
-			temp);
+			rxData[0], rxData[1], rxData[2], rxData[3]);						//temp
 }
 
 
@@ -293,7 +292,7 @@ static void initCanPeripheral(void) {
 	canHandle.Init.AutoRetransmission = ENABLE;
 	canHandle.Init.ReceiveFifoLocked = DISABLE;
 	canHandle.Init.TransmitFifoPriority = DISABLE;
-	canHandle.Init.Mode = CAN_MODE_LOOPBACK;			//NORMAL
+	canHandle.Init.Mode = CAN_MODE_NORMAL;			//Loop eigene daten
 	canHandle.Init.SyncJumpWidth = CAN_SJW_1TQ;
 
 	// CAN Baudrate
