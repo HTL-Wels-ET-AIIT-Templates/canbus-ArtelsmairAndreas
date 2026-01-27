@@ -145,14 +145,14 @@ void canSendTask(void) {
 	txData[6] = 0x00;
 	txData[7] = 0x00;
 
-	txHeader.StdId = 0x100;
+	txHeader.StdId = 0x1AA;
 	txHeader.ExtId = 0x00;
 	txHeader.RTR   = CAN_RTR_DATA;
 	txHeader.IDE   = CAN_ID_STD;
 	txHeader.DLC   = 8;
 
 	// Mailbox frei?
-	if (HAL_CAN_GetTxMailboxesFreeLevel(&canHandle) == 0) {
+	if (HAL_CAN_GetTxMailboxesFreeLevel(&canHandle) != 3) {
 		return;
 	}
 
